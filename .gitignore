@@ -1,0 +1,41 @@
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Backend
+backend/__pycache__/
+backend/*.pyc
+backend/.pytest_cache/
+backend/venv/
+backend/.vscode/
+
+# Frontend
+frontend/node_modules/
+frontend/build/
+frontend/dist/
+frontend/.env
+frontend/.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+agrilink_db*
+pgdump_backup*
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
+.DS_Store
