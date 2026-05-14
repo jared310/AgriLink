@@ -1,10 +1,13 @@
-﻿from flask import Flask, request, jsonify
+﻿from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
-app = Flask(__name__)
+# Serve frontend build folder
+FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build')
+
+app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
 CORS(app)
 
@@ -109,6 +112,14 @@ def handle_vehicles():
     with get_db_connection() as conn:
         vehs = conn.execute('SELECT * FROM vehicles ORDER BY id DESC').fetchall()
     return jsonify([dict(v) for v in vehs])
+
+# Serve React frontend
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_frontend(path):
+    if path and os.path.exists(os.path.join(FRONTEND_BUILD_PATH, path)):
+        return send_from_directory(FRONTEND_BUILD_PATH, path)
+    return send_from_directory(FRONTEND_BUILD_PATH, 'index.html')
 
 if __name__ == '__main__':
     import os

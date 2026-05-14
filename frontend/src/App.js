@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import LoginRegister from './LoginRegister';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
 const initialProductForm = { item: '', price: '', stock: '', location: '', image: '' };
 const initialVehicleForm = { vehicle_type: 'Pickup', location: '', capacity: '' };
 
@@ -256,7 +256,8 @@ export default function App() {
               </div>
             ))}
           </div>
-        )}
+        )}        git remote remove origin
+        git remote add origin https://github.com/yourusername/AgriLink.git
 
         {activeTab === 'Profile' && (
           <div style={{ padding: '10px', maxWidth: '500px', margin: '0 auto' }}>
