@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import LoginRegister from './LoginRegister';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
 const initialProductForm = { item: '', price: '', stock: '', location: '', image: '' };
-const initialVehicleForm = { vehicle_type: 'Pickup', location: '', capacity: '', driver_name: '', driver_phone: '', transport_cost: '', driver_pic: '', vehicle_pic: '' };
+const initialVehicleForm = { vehicle_type: 'Pickup', location: '', capacity: '' };
 
 const cleanUserForStorage = (user) => {
   if (!user) return null;
@@ -22,9 +22,6 @@ export default function App() {
   const [vehicleForm, setVehicleForm] = useState(initialVehicleForm);
   const [errorMessage, setErrorMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState('');
-  const [isChatLoading, setIsChatLoading] = useState(false);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('agri_user');
@@ -125,14 +122,6 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
-  const handleUploadVehicleImage = (event, field) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setVehicleForm(c => ({ ...c, [field]: reader.result }));
-    reader.readAsDataURL(file);
-  };
-
   const handlePostProduct = async (e) => {
     e.preventDefault();
     if (!productForm.item || !productForm.price) return setErrorMessage("Item and Price required");
@@ -157,26 +146,6 @@ export default function App() {
     } catch (e) { setErrorMessage("Delete failed."); }
   };
 
-  const handleAiChat = async () => {
-    if (!chatInput.trim()) return;
-    const userMsg = chatInput;
-    setChatInput('');
-    setChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    setIsChatLoading(true);
-    try {
-      const response = await fetchJson('/ai_chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question: userMsg }),
-      });
-      setChatMessages(prev => [...prev, { role: 'ai', text: response.answer || 'Unable to process your question.' }]);
-    } catch (e) {
-      setChatMessages(prev => [...prev, { role: 'ai', text: '🌾 Farming Assistant: I encountered an error. Please try again.' }]);
-    } finally {
-      setIsChatLoading(false);
-    }
-  };
-
   const filteredProducts = useMemo(() => {
     return products.filter(p => p.item?.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [products, searchTerm]);
@@ -185,7 +154,6 @@ export default function App() {
     { key: 'Home', icon: '🏠' },
     { key: 'Soko', icon: '🛒' },
     { key: 'Usafiri', icon: '🚚' },
-    { key: 'AiChat', icon: '🤖' },
     { key: 'Profile', icon: '👤' },
   ];
 
@@ -227,119 +195,69 @@ export default function App() {
                 </div>
               ))}
             </div>
-
-            <div style={s.poweredBy}>
-              <span>🌾 Powered by AgriLink 🌾</span>
-            </div>
           </div>
         )}
 
-        {activeTab === 'Soko' && (
-          <div>
-            <div style={s.searchContainer}>
-              <input 
-                style={{ ...s.input, marginBottom: '15px' }} 
-                placeholder="🔍 Search produce..." 
-                onChange={e => setSearchTerm(e.target.value)} 
-              />
-            </div>
-            {filteredProducts.map(p => (
-              <div key={p.id} style={s.sokoCard}>
-                <img src={p.image || 'https://via.placeholder.com/80'} style={s.sokoImg} alt="produce" />
-                <div style={{ flex: 1, paddingLeft: '15px' }}>
-                  <h4 style={{ margin: 0 }}>{p.item}</h4>
-                  <p style={{ fontSize: '13px', margin: '5px 0' }}>
-                    <strong>{p.price} KES</strong> | 📍 {p.location}
-                  </p>
-                  <button style={s.callBtn} onClick={() => window.open(`tel:${p.seller_phone}`)}>
-                    Call Seller
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+       {/* Soko / Market Section */}
+{activeTab === 'Soko' && (
+  <div>
+    <div style={s.searchContainer}>
+      <input 
+        style={{ ...s.input, marginBottom: '15px' }} 
+        placeholder="🔍 Search produce..." 
+        onChange={e => setSearchTerm(e.target.value)} 
+      />
+    </div>
+    {filteredProducts.map(p => (
+      <div key={p.id} style={s.sokoCard}>
+        <img src={p.image || 'https://via.placeholder.com/80'} style={s.sokoImg} alt="produce" />
+        <div style={{ flex: 1, paddingLeft: '15px' }}>
+          <h4 style={{ margin: 0 }}>{p.item}</h4>
+          <p style={{ fontSize: '13px', margin: '5px 0' }}>
+            <strong>{p.price} KES</strong> | 📍 {p.location}
+          </p>
+          <button style={s.callBtn} onClick={() => window.open(`tel:${p.seller_phone}`)}>
+            Call Seller
+          </button>
+        </div>
+      </div>
+    ))}
+  </div>
+)}
+
+{/* Logistics Section (Updated from Usafiri) */}
+{activeTab === 'Logistics' && (
+  <div style={s.logisticsContainer}>
+    <h3 style={{ color: '#fff' }}>🚚 Available Logistics</h3>
+    <p style={{ color: '#ccc' }}>Find transport for your farm produce.</p>
+    {/* You can map your logistics data here similar to Soko */}
+  </div>
+)}
 
         {activeTab === 'Usafiri' && (
           <div>
             <div style={s.contentBox}>
-              <h4 style={{ color: '#4caf50', margin: '0 0 15px 0' }}>📋 Register Transport Service</h4>
-              <input style={s.input} placeholder="Your Full Name" onChange={e => setVehicleForm({ ...vehicleForm, driver_name: e.target.value })} />
-              <input style={s.input} placeholder="Your Phone Number" onChange={e => setVehicleForm({ ...vehicleForm, driver_phone: e.target.value })} />
+              <h4 style={{ color: '#4caf50', margin: '0 0 15px 0' }}>Register Transport</h4>
               <input style={s.input} placeholder="Vehicle Type" onChange={e => setVehicleForm({ ...vehicleForm, vehicle_type: e.target.value })} />
               <input style={s.input} placeholder="Capacity" onChange={e => setVehicleForm({ ...vehicleForm, capacity: e.target.value })} />
               <input style={s.input} placeholder="Area" onChange={e => setVehicleForm({ ...vehicleForm, location: e.target.value })} />
-              <input style={s.input} type="number" placeholder="Transport Cost (KES)" onChange={e => setVehicleForm({ ...vehicleForm, transport_cost: e.target.value })} />
-              <div style={{ margin: '10px 0', fontSize: '12px' }}>
-                <label>📸 Driver Picture:</label><br/>
-                <input type="file" onChange={(e) => handleUploadVehicleImage(e, 'driver_pic')} />
-              </div>
-              <div style={{ margin: '10px 0', fontSize: '12px' }}>
-                <label>🚗 Vehicle Photo:</label><br/>
-                <input type="file" onChange={(e) => handleUploadVehicleImage(e, 'vehicle_pic')} />
-              </div>
               <button style={s.btn} onClick={async () => {
-                if (!vehicleForm.driver_name || !vehicleForm.driver_phone) {
-                  setErrorMessage('Driver name and phone are required.');
-                  return;
-                }
-                await fetchJson('/vehicles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(vehicleForm) });
-                setVehicleForm(initialVehicleForm);
+                await fetchJson('/vehicles', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...vehicleForm, owner_name: user.name, owner_phone: user.phone }) });
                 loadVehicles();
-                setErrorMessage('');
               }}>Register Vehicle</button>
             </div>
-            <h4 style={{ margin: '20px 0 10px 0' }}>Available Transport Services</h4>
             {vehicles.map(v => (
-              <div key={v.id} style={s.vehicleDetailCard}>
-                <div style={{ display: 'flex', gap: '12px', marginRight: '15px' }}>
-                  {v.driver_pic && <img src={v.driver_pic} style={s.driverPic} alt="driver" />}
-                  {v.vehicle_pic && <img src={v.vehicle_pic} style={s.vehiclePic} alt="vehicle" />}
-                </div>
+              <div key={v.id} style={s.sokoCard}>
                 <div style={{ flex: 1 }}>
-                  <h4 style={{ margin: '0 0 5px 0' }}>👤 {v.driver_name}</h4>
-                  <p style={{ fontSize: '12px', margin: '4px 0' }}><strong>🚗 Vehicle:</strong> {v.vehicle_type}</p>
-                  <p style={{ fontSize: '12px', margin: '4px 0' }}><strong>📦 Capacity:</strong> {v.capacity}</p>
-                  <p style={{ fontSize: '12px', margin: '4px 0' }}><strong>📍 Area:</strong> {v.location}</p>
-                  <p style={{ fontSize: '12px', margin: '4px 0', color: '#4caf50', fontWeight: 'bold' }}><strong>💰 Cost:</strong> {v.transport_cost} KES</p>
-                  <button style={s.callBtn} onClick={() => window.open(`tel:${v.driver_phone}`)}>📞 Call {v.driver_phone}</button>
+                  <h4 style={{ margin: 0 }}>{v.vehicle_type}</h4>
+                  <span style={{ fontSize: '13px' }}>{v.capacity} | 📍 {v.location}</span>
                 </div>
+                <button style={s.callBtn} onClick={() => window.open(`tel:${v.owner_phone}`)}>Contact</button>
               </div>
             ))}
           </div>
-        )}
-
-        {activeTab === 'AiChat' && (
-          <div style={s.chatContainer}>
-            <h3 style={{ color: '#4caf50', textAlign: 'center' }}>🤖 Farming AI Assistant</h3>
-            <p style={{ fontSize: '12px', color: '#888', textAlign: 'center' }}>Ask about crop diseases, chemicals, weather, and farming advice</p>
-            <div style={s.chatBox}>
-              {chatMessages.length === 0 && (
-                <div style={{ textAlign: 'center', color: '#888', padding: '20px' }}>
-                  <p>💬 Start chatting with your farming assistant!</p>
-                  <p style={{ fontSize: '12px' }}>Examples: "What chemicals treat maize leaf blight?", "Best time to plant beans?"</p>
-                </div>
-              )}
-              {chatMessages.map((msg, idx) => (
-                <div key={idx} style={msg.role === 'user' ? s.userMsg : s.aiMsg}>
-                  <p style={{ margin: 0, whiteSpace: 'pre-wrap' }}>{msg.text}</p>
-                </div>
-              ))}
-            </div>
-            <div style={s.chatInput}>
-              <input 
-                style={s.chatInputField}
-                placeholder="Ask me about farming..."
-                value={chatInput}
-                onChange={(e) => setChatInput(e.target.value)}
-                onKeyPress={(e) => e.key === 'Enter' && handleAiChat()}
-              />
-              <button style={s.chatSendBtn} onClick={handleAiChat} disabled={isChatLoading}>
-                {isChatLoading ? '⏳' : '➤'}
-              </button>
-            </div>
-          </div>
-        )}
+        )}        git remote remove origin
+        git remote add origin https://github.com/yourusername/AgriLink.git
 
         {activeTab === 'Profile' && (
           <div style={{ padding: '10px', maxWidth: '500px', margin: '0 auto' }}>
@@ -374,6 +292,13 @@ export default function App() {
             </div>
           </div>
         )}
+
+        {activeTab === 'Home' && (
+          <div style={s.poweredBy}>
+            <span>Powered by</span>
+            <strong>AgriLink</strong>
+          </div>
+        )}
       </main>
 
       <nav style={s.nav}>
@@ -398,10 +323,7 @@ const s = {
   prodImg: { width: '100%', height: '100px', objectFit: 'cover' },
   sokoCard: { background: '#1e1e1e', display: 'flex', padding: '15px', borderRadius: '18px', marginBottom: '12px', alignItems: 'center', border: '1px solid #2a2a2a' },
   sokoImg: { width: '75px', height: '75px', borderRadius: '12px', objectFit: 'cover' },
-  vehicleDetailCard: { background: '#1e1e1e', padding: '15px', borderRadius: '18px', marginBottom: '12px', border: '1px solid #2a2a2a', display: 'flex', gap: '15px', alignItems: 'flex-start' },
-  driverPic: { width: '70px', height: '70px', borderRadius: '50%', objectFit: 'cover' },
-  vehiclePic: { width: '90px', height: '70px', borderRadius: '12px', objectFit: 'cover' },
-  callBtn: { padding: '10px 18px', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' },
+  callBtn: { padding: '10px 18px', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' },
   nav: { display: 'flex', justifyContent: 'space-around', padding: '10px', background: 'rgba(24, 24, 24, 0.95)', position: 'fixed', bottom: 0, width: '100%', borderTop: '1px solid #2a2a2a', backdropFilter: 'blur(10px)' },
   navItem: { cursor: 'pointer', textAlign: 'center' },
   input: { width: '100%', padding: '14px', margin: '8px 0', borderRadius: '12px', border: '1px solid #333', background: '#252525', color: '#fff', boxSizing: 'border-box' },
@@ -413,13 +335,5 @@ const s = {
   label: { fontSize: '11px', color: '#888', textTransform: 'uppercase', letterSpacing: '0.5px' },
   val: { fontSize: '15px', color: '#fff', fontWeight: '500' },
   alert: { background: '#d32f2f', padding: '12px', borderRadius: '10px', marginBottom: '15px', textAlign: 'center' },
-  poweredBy: { marginTop: '40px', paddingTop: '20px', borderTop: '1px solid #333', color: '#888', fontSize: '12px', textAlign: 'center' },
-  chatContainer: { padding: '10px 0' },
-  chatBox: { background: '#181818', border: '1px solid #333', borderRadius: '12px', height: '400px', overflowY: 'auto', padding: '15px', marginBottom: '10px' },
-  userMsg: { background: '#2e7d32', padding: '10px 12px', borderRadius: '12px', marginBottom: '8px', textAlign: 'right', color: '#fff' },
-  aiMsg: { background: '#333', padding: '10px 12px', borderRadius: '12px', marginBottom: '8px', color: '#ccc' },
-  chatInput: { display: 'flex', gap: '8px' },
-  chatInputField: { flex: 1, padding: '12px', background: '#252525', border: '1px solid #333', borderRadius: '12px', color: '#fff' },
-  chatSendBtn: { padding: '12px 18px', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
-  searchContainer: { marginBottom: '15px' },
+  poweredBy: { marginTop: '20px', color: '#888', fontSize: '12px', textAlign: 'center' },
 };
