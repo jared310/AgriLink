@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import LoginRegister from './LoginRegister';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://localhost:5000');
@@ -171,7 +171,22 @@ export default function App() {
       });
       setChatMessages(prev => [...prev, { role: 'ai', text: response.answer || 'Unable to process your question.' }]);
     } catch (e) {
-      setChatMessages(prev => [...prev, { role: 'ai', text: '🌾 Farming Assistant: I encountered an error. Please try again.' }]);
+      console.error('AI chat error', e);
+      const q = (userMsg || '').toLowerCase();
+      const localKb = {
+        'maize': 'Maize needs well-drained soil, 75-100mm rainfall, and grows best at 21-27°C. Apply NPK fertilizer at 150kg/hectare.',
+        'disease': 'Common crop diseases: Maize Leaf Blight (use Mancozeb), Fall Armyworm (use Chlorpyrifos). Early detection is key!',
+        'chemical': 'Always follow label instructions. Use Roundup for weeds, Mancozeb for fungal diseases, and Neem oil for insects.',
+        'rain': 'Best planting time is during rainy season. Monitor weather forecasts and plant 2-3 weeks before heavy rains.',
+        'soil': 'Test soil before planting. Add manure 2-3 weeks before planting for better fertility and water retention.',
+        'bean': 'Beans need 400-600mm rainfall, 18-25°C temperature. Plant 45cm apart, harvest after 80-90 days.',
+        'tomato': 'Tomatoes need 6-8 hours sunlight daily. Water consistently and prune for better yields. Use trellis support.',
+      };
+      let fallback = '🌾 Farming Assistant: Sorry, I could not reach the assistant. Try again later.';
+      for (const k of Object.keys(localKb)) {
+        if (q.includes(k)) { fallback = localKb[k]; break; }
+      }
+      setChatMessages(prev => [...prev, { role: 'ai', text: fallback }]);
     } finally {
       setIsChatLoading(false);
     }
