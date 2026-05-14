@@ -2,3 +2,4 @@
 flask-cors
 flask-bcrypt
 gunicorn
+

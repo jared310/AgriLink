@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 
 const initialAuthForm = { name: '', email: '', phone: '', password: '' };
 
@@ -12,6 +12,7 @@ export default function LoginRegister({ onAuthSuccess, apiBaseUrl }) {
   const [errorMessage, setErrorMessage] = useState('');
   const [infoMessage, setInfoMessage] = useState('');
   const [healthMessage, setHealthMessage] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchJson = async (path, options = {}) => {
@@ -45,9 +46,14 @@ export default function LoginRegister({ onAuthSuccess, apiBaseUrl }) {
   };
 
   const handleAuthSubmit = async () => {
-    const identifier = authForm.email || authForm.phone;
+    const identifier = authForm.email.trim() || authForm.phone.trim();
     if (!identifier || !authForm.password) {
       setErrorMessage('Please provide email or phone, and password.');
+      return;
+    }
+
+    if (!termsAccepted) {
+      setErrorMessage('Please agree to the terms and conditions to continue.');
       return;
     }
 
@@ -64,43 +70,50 @@ export default function LoginRegister({ onAuthSuccess, apiBaseUrl }) {
       if (isRegisterMode) {
         const payload = {
           name: authForm.name.trim(),
-          email: authForm.email.trim().toLowerCase(),
+          email: authForm.email.trim().toLowerCase() || null,
           phone: authForm.phone.trim(),
           password: authForm.password,
         };
-        
-        // Register
-        await fetchJson('/api/auth/register', {
+
+        await fetchJson('/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
-        
-        // Then login
-        const loginData = await fetchJson('/api/auth/login', {
+
+        const loginPayload = {
+          password: authForm.password,
+        };
+        if (authForm.email.trim()) loginPayload.email = authForm.email.trim().toLowerCase();
+        if (authForm.phone.trim()) loginPayload.phone = authForm.phone.trim();
+
+        const loginData = await fetchJson('/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email_or_phone: authForm.email.trim().toLowerCase(),
-            password: authForm.password,
-          }),
+          body: JSON.stringify(loginPayload),
         });
-        
-        onAuthSuccess({ token: loginData.token, user: loginData.user });
+
+        onAuthSuccess(loginData.user || loginData);
+        setAuthForm(initialAuthForm);
+        setTermsAccepted(false);
         return;
       }
 
-      // Login
-      const data = await fetchJson('/api/auth/login', {
+      const loginPayload = {
+        password: authForm.password,
+      };
+      if (authForm.email.trim()) loginPayload.email = authForm.email.trim().toLowerCase();
+      if (authForm.phone.trim()) loginPayload.phone = authForm.phone.trim();
+
+      const data = await fetchJson('/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email_or_phone: identifier.trim(),
-          password: authForm.password,
-        }),
+        body: JSON.stringify(loginPayload),
       });
 
-      onAuthSuccess({ token: data.token, user: data.user });
+      onAuthSuccess(data.user || data);
+      setAuthForm(initialAuthForm);
+      setTermsAccepted(false);
     } catch (error) {
       console.error('Authentication failed:', error);
       setErrorMessage(error.message || (isRegisterMode ? 'Registration failed. Please try again.' : 'Login failed. Please check your credentials and try again.'));
@@ -115,7 +128,7 @@ export default function LoginRegister({ onAuthSuccess, apiBaseUrl }) {
     setInfoMessage('');
   };
 
-  const checkBackendHealth = async () => {
+  const checkBackendHealth = useCallback(async () => {
     try {
       const response = await fetch(`${apiBaseUrl}/health`, { method: 'GET' });
       const data = await response.json();
@@ -123,11 +136,11 @@ export default function LoginRegister({ onAuthSuccess, apiBaseUrl }) {
     } catch {
       setHealthMessage('Backend unavailable. Start your API on port 5000.');
     }
-  };
+  }, [apiBaseUrl]);
 
   useEffect(() => {
     checkBackendHealth();
-  }, [apiBaseUrl]);
+  }, [checkBackendHealth]);
 
   return (
     <div style={s.page}>
@@ -162,6 +175,28 @@ export default function LoginRegister({ onAuthSuccess, apiBaseUrl }) {
           value={authForm.password}
           onChange={(e) => setAuthForm((curr) => ({ ...curr, password: e.target.value }))}
         />
+
+        <label style={s.checkboxLabel}>
+          <input
+            type="checkbox"
+            checked={termsAccepted}
+            onChange={(e) => setTermsAccepted(e.target.checked)}
+            style={s.checkbox}
+          />
+          I agree to the Terms & Conditions
+        </label>
+
+        <div style={s.termsBox}>
+          <p style={s.termsTitle}>Terms & Conditions</p>
+          <ul style={s.termsList}>
+            <li>Use AgriLink responsibly and share accurate product info.</li>
+            <li>Protect your login details and do not share your password.</li>
+            <li>Respect other users when messaging, buying or selling.</li>
+            <li>AgriLink is not liable for third-party transactions or disagreements.</li>
+            <li>By using the service, you accept these common marketplace terms.</li>
+          </ul>
+        </div>
+
         {infoMessage && <p style={s.infoText}>{infoMessage}</p>}
         {errorMessage && <p style={s.errorText}>{errorMessage}</p>}
         <button style={s.btn} onClick={handleAuthSubmit} disabled={isLoading}>
@@ -239,5 +274,39 @@ const s = {
     padding: '10px',
     cursor: 'pointer',
     fontWeight: 'bold',
+  },
+  checkboxLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    marginTop: '12px',
+    color: '#ddd',
+    fontSize: '14px',
+    textAlign: 'left',
+  },
+  checkbox: {
+    width: '16px',
+    height: '16px',
+    accentColor: '#2e7d32',
+  },
+  termsBox: {
+    background: '#232323',
+    border: '1px solid #2e7d32',
+    borderRadius: '12px',
+    padding: '12px',
+    marginTop: '12px',
+    textAlign: 'left',
+  },
+  termsTitle: {
+    margin: '0 0 8px 0',
+    fontSize: '13px',
+    fontWeight: '700',
+    color: '#cfdc39',
+  },
+  termsList: {
+    margin: 0,
+    paddingLeft: '18px',
+    color: '#ccc',
+    fontSize: '13px',
   },
 };
