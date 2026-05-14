@@ -1,5 +1,6 @@
 ﻿flask
 flask-cors
 flask-bcrypt
+flask
 gunicorn
-# (other dependencies like pymongo or nltk)
+pymongo
