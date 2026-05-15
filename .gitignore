@@ -27,6 +27,8 @@ frontend/.env.local
 
 # Database
 *.db
+*.db-shm
+*.db-wal
 *.sqlite
 *.sqlite3
 agrilink_db*
