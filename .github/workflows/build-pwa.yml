@@ -1,0 +1,33 @@
+name: Build PWA
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: |
+          npm ci
+
+      - name: Build frontend (PWA)
+        working-directory: ./frontend
+        run: |
+          npm run build:pwa
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: agrilink-web-build
+          path: frontend/build

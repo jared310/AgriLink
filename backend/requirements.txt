@@ -4,3 +4,5 @@ flask-bcrypt
 gunicorn
 pymongo
 werkzeug
+SQLAlchemy
+psycopg2-binary

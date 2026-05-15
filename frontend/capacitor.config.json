@@ -1,0 +1,6 @@
+{
+  "appId": "com.agrilink.app",
+  "appName": "AgriLink",
+  "webDir": "build",
+  "bundledWebRuntime": false
+}

@@ -25,6 +25,7 @@ export default function App() {
   const [chatMessages, setChatMessages] = useState([]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
+  const [theme, setTheme] = useState(() => localStorage.getItem('agri_theme') || 'dark');
 
   useEffect(() => {
     const savedUser = localStorage.getItem('agri_user');
@@ -117,6 +118,30 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
+  useEffect(() => {
+    try { localStorage.setItem('agri_theme', theme); } catch (e) {}
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+
+  const handleShare = async () => {
+    const shareData = { title: 'AgriLink', text: 'Check out AgriLink - farming marketplace app', url: window.location.href };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareData.url);
+        setErrorMessage('Share link copied to clipboard.');
+        setTimeout(() => setErrorMessage(''), 2500);
+      } else {
+        window.prompt('Copy this link to share:', shareData.url);
+      }
+    } catch (e) {
+      setErrorMessage('Unable to share at this time.');
+      setTimeout(() => setErrorMessage(''), 2500);
+    }
+  };
+
   const handleUploadProductImage = (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -197,6 +222,7 @@ export default function App() {
   }, [products, searchTerm]);
 
   const navItems = [
+    { key: 'Dashboard', icon: '⚙️' },
     { key: 'Home', icon: '🏠' },
     { key: 'Soko', icon: '🛒' },
     { key: 'Usafiri', icon: '🚚' },
@@ -206,9 +232,19 @@ export default function App() {
 
   if (!isLoggedIn) return <LoginRegister onAuthSuccess={handleAuthSuccess} apiBaseUrl={API_BASE_URL} />;
 
+  const themeStyles = theme === 'light' ? {
+    dash: { background: '#f5f5f5', color: '#111' },
+    header: { background: '#e0f2f1' , color: '#111'},
+    contentBox: { background: '#fff', border: '1px solid #e0e0e0', color: '#111' },
+    input: { background: '#fff', color: '#111', border: '1px solid #ddd' },
+    btn: { backgroundColor: '#1976d2', color: '#fff' },
+    nav: { background: 'rgba(255,255,255,0.95)', borderTop: '1px solid #e0e0e0', color: '#111' }
+  } : {};
+
   return (
-    <div style={s.dash}>
-      <header style={s.header}>
+    <div style={{ ...s.dash, ...(themeStyles.dash || {}) }}>
+      <header style={{ ...s.header, ...(themeStyles.header || {}) }}>
+        <button onClick={() => setActiveTab('Dashboard')} style={s.headerMenuBtn} aria-label="Open dashboard">⋯</button>
         <h3 style={{ margin: 0 }}>AgriLink</h3>
         <span style={{ fontSize: '12px', opacity: 0.8 }}>{user?.name?.toUpperCase()}</span>
       </header>
@@ -218,16 +254,16 @@ export default function App() {
 
         {activeTab === 'Home' && (
           <div>
-            <div style={s.contentBox}>
+            <div style={{ ...s.contentBox, ...(themeStyles.contentBox || {}) }}>
               <h4 style={{ color: '#4caf50', margin: '0 0 15px 0' }}>Sell Produce</h4>
-              <input style={s.input} placeholder="Item Name" value={productForm.item} onChange={e => setProductForm({ ...productForm, item: e.target.value })} />
-              <input style={s.input} type="number" placeholder="Price (KES)" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} />
-              <input style={s.input} placeholder="Location" value={productForm.location} onChange={e => setProductForm({ ...productForm, location: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} placeholder="Item Name" value={productForm.item} onChange={e => setProductForm({ ...productForm, item: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} type="number" placeholder="Price (KES)" value={productForm.price} onChange={e => setProductForm({ ...productForm, price: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} placeholder="Location" value={productForm.location} onChange={e => setProductForm({ ...productForm, location: e.target.value })} />
               <div style={{ margin: '10px 0', fontSize: '12px' }}>
                 <label>Product Image:</label><br/>
                 <input type="file" onChange={handleUploadProductImage} />
               </div>
-              <button style={s.btn} onClick={handlePostProduct} disabled={isLoading}>{isLoading ? 'Posting...' : 'Post Now'}</button>
+              <button style={{ ...s.btn, ...(themeStyles.btn || {}) }} onClick={handlePostProduct} disabled={isLoading}>{isLoading ? 'Posting...' : 'Post Now'}</button>
             </div>
 
             <h4 style={{ margin: '20px 0 10px 0' }}>Your Active Posts</h4>
@@ -253,7 +289,7 @@ export default function App() {
           <div>
             <div style={s.searchContainer}>
               <input 
-                style={{ ...s.input, marginBottom: '15px' }} 
+                style={{ ...s.input, ...(themeStyles.input || {}), marginBottom: '15px' }} 
                 placeholder="🔍 Search produce..." 
                 onChange={e => setSearchTerm(e.target.value)} 
               />
@@ -277,14 +313,14 @@ export default function App() {
 
         {activeTab === 'Usafiri' && (
           <div>
-            <div style={s.contentBox}>
+            <div style={{ ...s.contentBox, ...(themeStyles.contentBox || {}) }}>
               <h4 style={{ color: '#4caf50', margin: '0 0 15px 0' }}>📋 Register Transport Service</h4>
-              <input style={s.input} placeholder="Your Full Name" onChange={e => setVehicleForm({ ...vehicleForm, driver_name: e.target.value })} />
-              <input style={s.input} placeholder="Your Phone Number" onChange={e => setVehicleForm({ ...vehicleForm, driver_phone: e.target.value })} />
-              <input style={s.input} placeholder="Vehicle Type" onChange={e => setVehicleForm({ ...vehicleForm, vehicle_type: e.target.value })} />
-              <input style={s.input} placeholder="Capacity" onChange={e => setVehicleForm({ ...vehicleForm, capacity: e.target.value })} />
-              <input style={s.input} placeholder="Area" onChange={e => setVehicleForm({ ...vehicleForm, location: e.target.value })} />
-              <input style={s.input} type="number" placeholder="Transport Cost (KES)" onChange={e => setVehicleForm({ ...vehicleForm, transport_cost: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} placeholder="Your Full Name" onChange={e => setVehicleForm({ ...vehicleForm, driver_name: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} placeholder="Your Phone Number" onChange={e => setVehicleForm({ ...vehicleForm, driver_phone: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} placeholder="Vehicle Type" onChange={e => setVehicleForm({ ...vehicleForm, vehicle_type: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} placeholder="Capacity" onChange={e => setVehicleForm({ ...vehicleForm, capacity: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} placeholder="Area" onChange={e => setVehicleForm({ ...vehicleForm, location: e.target.value })} />
+              <input style={{ ...s.input, ...(themeStyles.input || {}) }} type="number" placeholder="Transport Cost (KES)" onChange={e => setVehicleForm({ ...vehicleForm, transport_cost: e.target.value })} />
               <div style={{ margin: '10px 0', fontSize: '12px' }}>
                 <label>📸 Driver Picture:</label><br/>
                 <input type="file" onChange={(e) => handleUploadVehicleImage(e, 'driver_pic')} />
@@ -293,7 +329,7 @@ export default function App() {
                 <label>🚗 Vehicle Photo:</label><br/>
                 <input type="file" onChange={(e) => handleUploadVehicleImage(e, 'vehicle_pic')} />
               </div>
-              <button style={s.btn} onClick={async () => {
+              <button style={{ ...s.btn, ...(themeStyles.btn || {}) }} onClick={async () => {
                 if (!vehicleForm.driver_name || !vehicleForm.driver_phone) {
                   setErrorMessage('Driver name and phone are required.');
                   return;
@@ -358,7 +394,7 @@ export default function App() {
 
         {activeTab === 'Profile' && (
           <div style={{ padding: '10px', maxWidth: '500px', margin: '0 auto' }}>
-            <div style={{ ...s.contentBox, padding: '30px 20px', borderRadius: '25px' }}>
+            <div style={{ ...s.contentBox, ...(themeStyles.contentBox || {}), padding: '30px 20px', borderRadius: '25px' }}>
               <div style={{ marginBottom: '30px', textAlign: 'center' }}>
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   <div style={s.avatarWrapper}>
@@ -383,9 +419,39 @@ export default function App() {
                 {user.email && <div style={s.infoRow}><span style={s.label}>Email</span><span style={s.val}>{user.email}</span></div>}
               </div>
 
-              <button style={{ ...s.btn, background: 'linear-gradient(to right, #d32f2f, #b71c1c)', marginTop: '30px' }} onClick={handleLogout}>
+              <button style={{ ...s.btn, ...(themeStyles.btn || {}), background: 'linear-gradient(to right, #d32f2f, #b71c1c)', marginTop: '30px' }} onClick={handleLogout}>
                 Sign Out
               </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'Dashboard' && (
+          <div>
+            <div style={{ ...s.contentBox, ...(themeStyles.contentBox || {}) }}>
+              <h3 style={{ marginTop: 0 }}>Dashboard</h3>
+              <div style={{ margin: '12px 0' }}>
+                <strong>Settings</strong>
+                <p style={{ fontSize: '13px', marginTop: '8px' }}>How to sign in: Open the app, enter your phone or email on the Sign In screen, then follow the prompts to register or login. Use the green buttons to submit.</p>
+                <p style={{ fontSize: '13px', marginTop: '8px' }}>Navigation help: Use the bottom navigation to move between Home, Soko, Usafiri, AiChat and Profile. Tap each icon to switch sections.</p>
+              </div>
+
+              <div style={{ margin: '12px 0' }}>
+                <strong>Appearance</strong>
+                <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginTop: '8px' }}>
+                  <button style={{ ...s.btn, width: '140px', ...(themeStyles.btn || {}) }} onClick={toggleTheme}>{theme === 'dark' ? 'Switch to Light' : 'Switch to Dark'}</button>
+                  <span style={{ fontSize: '13px', color: theme === 'light' ? '#333' : '#ccc' }}>Current: {theme}</span>
+                </div>
+              </div>
+
+              <div style={{ margin: '12px 0' }}>
+                <strong>About</strong>
+                <p style={{ fontSize: '13px', marginTop: '8px' }}>AgriLink connects farmers and buyers, enables transport listings, and provides an AI assistant for farming advice.</p>
+              </div>
+
+              <div style={{ marginTop: '16px' }}>
+                <button style={{ ...s.btn, ...(themeStyles.btn || {}) }} onClick={handleShare}>Share App</button>
+              </div>
             </div>
           </div>
         )}
@@ -419,6 +485,7 @@ const s = {
   callBtn: { padding: '10px 18px', background: '#2e7d32', color: '#fff', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '8px' },
   nav: { display: 'flex', justifyContent: 'space-around', padding: '10px', background: 'rgba(24, 24, 24, 0.95)', position: 'fixed', bottom: 0, width: '100%', borderTop: '1px solid #2a2a2a', backdropFilter: 'blur(10px)' },
   navItem: { cursor: 'pointer', textAlign: 'center' },
+  headerMenuBtn: { background: 'transparent', border: 'none', color: 'inherit', fontSize: '20px', cursor: 'pointer', marginRight: '10px' },
   input: { width: '100%', padding: '14px', margin: '8px 0', borderRadius: '12px', border: '1px solid #333', background: '#252525', color: '#fff', boxSizing: 'border-box' },
   btn: { width: '100%', height: '50px', backgroundColor: '#2e7d32', color: '#fff', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' },
   avatarWrapper: { width: '130px', height: '130px', borderRadius: '50%', background: 'linear-gradient(145deg, #1b5e20, #2e7d32)', padding: '4px' },
