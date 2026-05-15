@@ -31,6 +31,17 @@ Connect the `jared310/AgriLink` repository to Render.
 4. When ready, copy the `DATABASE_URL` from the Render dashboard.
 
 ### 4) Create a web service for the backend
+There are two options:
+
+#### Option A — Use `render.yaml` (recommended)
+1. In Render, choose **New** → **Import from GitHub**.
+2. Select the `jared310/AgriLink` repository.
+3. Render will detect `render.yaml` and create services automatically:
+   - `agrilink-db` (PostgreSQL)
+   - `agrilink-backend` (Python web service)
+4. Confirm the service names and create them.
+
+#### Option B — Create manually
 1. In Render, choose **New** → **Web Service**.
 2. Select the `AgriLink` repository.
 3. Set the root directory to `backend`.

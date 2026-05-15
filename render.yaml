@@ -1,0 +1,19 @@
+services:
+  - type: postgres
+    name: agrilink-db
+    databaseName: agrilink_db
+    plan: free
+    region: oregon
+
+  - type: web
+    name: agrilink-backend
+    env: python
+    plan: free
+    branch: main
+    region: oregon
+    buildCommand: pip install -r requirements.txt && cd ../frontend && npm ci && npm run build:pwa
+    startCommand: gunicorn --bind :$PORT main:app
+    envVars:
+      - key: DATABASE_URL
+        fromService: agrilink-db
+    autoDeploy: true
