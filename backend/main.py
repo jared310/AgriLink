@@ -244,3 +244,16 @@ def serve_frontend(path):
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
+
+
+# Debug endpoint (temporary) — shows whether frontend build folder exists on the server
+@app.route('/_debug_build', methods=['GET'])
+def debug_build():
+    try:
+        exists = os.path.exists(FRONTEND_BUILD_PATH)
+        files = []
+        if exists:
+            files = sorted(os.listdir(FRONTEND_BUILD_PATH))
+        return jsonify({'build_path': FRONTEND_BUILD_PATH, 'exists': exists, 'files': files}), 200
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
