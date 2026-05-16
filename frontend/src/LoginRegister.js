@@ -52,8 +52,8 @@ export default function LoginRegister({ onAuthSuccess, apiBaseUrl }) {
       return;
     }
 
-    if (!termsAccepted) {
-      setErrorMessage('Please agree to the terms and conditions to continue.');
+    if (isRegisterMode && !termsAccepted) {
+      setErrorMessage('Please agree to the terms and conditions to register.');
       return;
     }
 
