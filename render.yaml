@@ -12,21 +12,7 @@ services:
     branch: main
     region: oregon
     rootDirectory: backend
-    buildCommand: |
-      pip install -r requirements.txt
-      echo "PWD:" && pwd
-      echo "LS repo root:" && ls -la ..
-      echo "LS backend dir:" && ls -la
-      cd ../frontend
-      echo "FRONTEND PWD:" && pwd
-      echo "LS frontend dir:" && ls -la
-      npm ci
-      npm run build:pwa
-      echo "LS build:" && ls -la build
-      mkdir -p ../backend/frontend
-      rm -rf ../backend/frontend/build
-      cp -r build ../backend/frontend/build
-      echo "LS backend/frontend after copy:" && ls -la ../backend/frontend
+    buildCommand: "bash -lc \"pip install -r requirements.txt && echo PWD: && pwd && echo LS_repo_root: && ls -la .. && echo LS_backend_dir: && ls -la && cd ../frontend && echo FRONTEND_PWD: && pwd && echo LS_frontend_dir: && ls -la && npm ci && npm run build:pwa && echo LS_build: && ls -la build && mkdir -p ../backend/frontend && rm -rf ../backend/frontend/build && cp -r build ../backend/frontend/build && echo LS_backend_frontend_after_copy: && ls -la ../backend/frontend\""
     startCommand: gunicorn --bind :$PORT main:app
     envVars:
       - key: DATABASE_URL
