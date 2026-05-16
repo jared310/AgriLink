@@ -1,32 +1,19 @@
 ﻿from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
-import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
-import os
-
-# Serve frontend build folder (placed inside backend/frontend/build during deploy)
-FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), 'frontend', 'build')
-
-app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='')
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
-CORS(app)
-
-DB_FILE = os.path.join(os.path.dirname(__file__), 'agrilink.db')
-
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-import os
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
+import os
 
 # Serve frontend build folder (placed inside backend/frontend/build during deploy)
 FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), 'frontend', 'build')
 
-app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='')
+app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='/static')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 CORS(app)
+
+DB_FILE = os.path.join(os.path.dirname(__file__), 'agrilink.db')
 
 # Database configuration (use DATABASE_URL for production, fallback to local SQLite)
 DB_FILE = os.path.join(os.path.dirname(__file__), 'agrilink.db')
