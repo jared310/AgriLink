@@ -11,6 +11,7 @@ services:
     plan: free
     branch: main
     region: oregon
+    rootDirectory: backend
     buildCommand: pip install -r requirements.txt && cd ../frontend && npm ci && npm run build:pwa
     startCommand: gunicorn --bind :$PORT main:app
     envVars:
