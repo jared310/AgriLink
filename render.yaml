@@ -12,7 +12,7 @@ services:
     branch: main
     region: oregon
     rootDirectory: backend
-    buildCommand: pip install -r requirements.txt && cd ../frontend && npm ci && npm run build:pwa
+    buildCommand: pip install -r requirements.txt && cd ../frontend && npm ci && npm run build:pwa && mkdir -p ../backend/frontend && cp -r build ../backend/frontend/build
     startCommand: gunicorn --bind :$PORT main:app
     envVars:
       - key: DATABASE_URL

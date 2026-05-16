@@ -4,8 +4,8 @@ import sqlite3
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 
-# Serve frontend build folder
-FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build')
+# Serve frontend build folder (placed inside backend/frontend/build during deploy)
+FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), 'frontend', 'build')
 
 app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024 
@@ -21,8 +21,8 @@ from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# Serve frontend build folder
-FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), '..', 'frontend', 'build')
+# Serve frontend build folder (placed inside backend/frontend/build during deploy)
+FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), 'frontend', 'build')
 
 app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='')
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
