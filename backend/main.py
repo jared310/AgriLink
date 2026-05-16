@@ -9,7 +9,8 @@ import os
 # Serve frontend build folder (placed inside backend/frontend/build during deploy)
 FRONTEND_BUILD_PATH = os.path.join(os.path.dirname(__file__), 'frontend', 'build')
 
-app = Flask(__name__, static_folder=FRONTEND_BUILD_PATH, static_url_path='/static')
+# Disable Flask's default static route so CRA's /static path maps correctly to build/static
+app = Flask(__name__, static_folder=None)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 CORS(app)
 
@@ -217,6 +218,11 @@ def ai_chat():
             answer = response
             break
     return jsonify({'answer': answer}), 200
+
+
+@app.route('/static/<path:path>')
+def serve_static(path):
+    return send_from_directory(os.path.join(FRONTEND_BUILD_PATH, 'static'), path)
 
 
 # Serve React frontend
